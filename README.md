@@ -1,5 +1,9 @@
 # l10n-fdroid-web
 
+## Usage
+
+See index.html homepage.
+
 ## Configuration
 
 by environment variables:
