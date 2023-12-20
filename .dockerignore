@@ -1,0 +1,5 @@
+# flyctl launch added from .gitignore
+**/__debug_bin*
+**/.vscode
+**/l10n-fdroid-web
+fly.toml
