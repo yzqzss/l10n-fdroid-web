@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{.packageName}} v{{.versionCode}} Language Values</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+<data packageName="{{.packageName}}" versionCode="{{.versionCode}}" len_values="{{.len_values}}" sourceCode="{{.sourceCode}}" maxStringCount="{{.maxStringCount}}"></data>
+<!-- 顶栏 -->
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <!-- 最左侧 -->
+        <div class="navbar-nav mr-auto">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="https://f-droid.org/packages/{{.packageName}}/">{{.packageName}}@F-Droid</a>
+                </li>
+                {{if .sourceCode}}<li class="nav-item">
+                    <a class="nav-link" href="{{.sourceCode}}">@Source Code</a>
+                </li>{{end}}
+                <li class="nav-item">
+                    <a class="navbar-brand">version: </a><a class="navbar-brand versionCode">{{.versionCode}}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="navbar-brand">Values: </a><a class="navbar-brand len_values">{{.len_values}}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/app/{{.packageName}}/versionCode/latest/values">Go to latest version</a>
+                </li>
+            </ul>
+        </div>
+        <!-- 最右侧 -->
+        <div class="navbar-nav ml-auto">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="https://github.com/yzqzss">Made by yzqzss</a>
+                </li>
+                <li class="nav-item">
+                    <!-- 单选或多选 -->
+                    <div class="btn-group btn-group-toggle nav-link" data-toggle="buttons">
+                        <label class="btn btn-secondary active">
+                            <input type="radio" name="options" id="option1" autocomplete="off" checked> Single Select
+                        </label>
+                        <label class="btn btn-secondary">
+                            <input type="radio" name="options" id="option2" autocomplete="off"> Multi Select
+                        </label>
+                        <!-- 全选 -->
+                        <button class="btn btn-secondary" onclick="$('.btn').addClass('active');clicked();">Select All</button>
+                        <!-- 取消全选 -->
+                        <button class="btn btn-secondary" onclick="$('.btn').removeClass('active');">Deselect All</button>
+                    </div>
+                    <script>
+                        // Add event listener for the radio buttons
+                        $('input[type=radio][name=options]').change(function() {
+                            // When the radio button selection changes, deactive all buttons
+                            $('.btn').removeClass('active');
+                        });
+                    </script>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
+    <!-- vales按钮们 -->
+    <div class="col row">
+        <style>
+            /* 按钮背景色 */
+            .bt-background-green {
+                background-color: #eaf5e6; /* Telegram 绿 */
+            }
+            /* 非激活时字体黑色 */
+            .btn-primary:not(.active) {
+                color: black;
+            }
+            /* 激活时字体白色 */
+            .btn-primary.active {
+                color: white;
+            }
+        </style>
+        {{ $maxStringCount := .maxStringCount }}
+        {{range .values}}
+            <!-- 将 progress-bar btn 作为可以被按下激活的按钮 -->
+            <button class="btn btn-primary bt-background-green" data-toggle="button" aria-pressed="false" autocomplete="off" valuesName="{{.valuesName}}" onclick="clicked()">
+                {{.valuesName}}
+                <div class="progress">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{.percentage}}%;" aria-valuenow="{{.stringCount}}" aria-valuemax="{{$maxStringCount}}">{{.stringCount}}</div>
+                </div>
+            </button>
+        {{end}}
+    </div>
+
+    <!-- 表 -->
+    <style>
+        /* 表头滚到顶部时固定 */
+        .table-header {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            /* 设为不透明 */
+            opacity: 1;
+        }
+    </style>
+    <div class="col row">
+        <table class="table" id="valuesTable">
+            <!-- Table content will be filled by JavaScript -->
+        </table>
+    </div>
+
+    <script>
+        function clicked() {
+            // 查看是否有被激活的按钮
+            setTimeout(function() {
+                // 查看是否有被激活的按钮
+                var activeBtn = $(".btn-primary.active");
+                if (activeBtn.length == 0) {
+                    console.log("No button is active");
+                    return;
+                }
+                showSelectValues();
+            }, 0);
+        }
+    </script>
+    <script>
+        function showSelectValues() {
+            // 获取选中的 values
+            var selectedValues = [];
+            $(".btn-primary.active").each(function() {
+                selectedValues.push($(this).attr("valuesName"));
+            });
+            // 如果是单选模式，deactivate 全部按钮
+            if ($("#option1").prop("checked")) {
+                console.log("Single Select, deactivate all buttons");
+                $(".btn-primary.active").each(function() {
+                    $(this).removeClass("active");
+                });
+            } else {
+                console.log("Multi Select");
+            }
+            console.log("Selected values: " + selectedValues);
+
+            // 清空表格
+            $("#valuesTable").empty();
+
+            // 添加表头
+            var thead = $("<thead>");
+            // 紧凑模式
+            var headerRow = $("<tr class='table-active table-header'>");
+            headerRow.append($("<th>").text("String Name")); // key
+            for (var i = 0; i < selectedValues.length; i++) {
+                headerRow.append($("<th>").text(selectedValues[i]));
+            }
+            thead.append(headerRow);
+            $("#valuesTable").append(thead);
+
+            // 添加表格内容
+            var tbody = $("<tbody>");
+            var rows = {};
+            var promises = [];
+            for (var i = 0; i < selectedValues.length; i++) {
+                // $.ajax({
+                var promise = $.ajax({
+                    url: "/api/app_values",
+                    type: "GET",
+                    data: {
+                        // get from <data> attr
+                        packageName: $("data").attr("packageName"),
+                        versionCode: $("data").attr("versionCode"),
+                        valuesName: selectedValues[i]
+                    },
+                    success: function(response) {
+                        for (var key in response.data.strings) {
+                            // 如果这个 key 在 rows 中不存在，就添加一行
+                            if (!rows.hasOwnProperty(key)) {
+                                console.log("Add row: " + key);
+                                rows[key] = $("<tr>").append($("<td>").text(key));
+                            }
+                        }
+                        // 遍历 rows 中的每一行，如果这一行中没有这个 valuesName 对应的单元格，就添加一个
+                        for (var key in rows) {
+                            if (!(key in response.data.strings)) {
+                                console.log("Add empty cell: " + key);
+                                rows[key].append($("<td>").text(""));
+                            } else {
+                                console.log("Add cell: " + key);
+                                rows[key].append($("<td>").text(response.data.strings[key]));
+                            }
+                        }
+                    }
+                });
+                promises.push(promise);
+            }
+            Promise.all(promises).then(function() {
+                console.log("All promises are resolved");
+                for (var key in rows) {
+                    console.log("Add row to tbody: " + key);
+                    tbody.append(rows[key]);
+                }
+                // 将 rows 中的所有行添加到 tbody 中
+
+                console.log("Add tbody to table");
+                $("#valuesTable").append(tbody);
+            });
+        }
+    </script>
+    <!-- 加一个一键回顶的右下角悬浮按钮 -->
+    <style>
+        .float-right {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+        }
+    </style>
+    <div class="float-right">
+        <a href="#" onclick="window.scrollTo(0,0);return false;" class="btn btn-primary">Back to top</a>
+    </div>
+</body>
+</html>

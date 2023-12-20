@@ -1,0 +1,23 @@
+{
+    "langs": {
+        "values": "Default",
+        "values-af": "Afrikaans",
+        "values-am": "Amharic",
+        "values-ar": "Arabic",
+        "values-az": "Azerbaijani",
+        "values-be": "Belarusian",
+        "values-bg": "Bulgarian",
+        "values-cs": "Czech",
+        "values-da": "Danish",
+        "values-de": "German",
+        "values-el": "Greek",
+        "values-en-rAU": "English (Australia)",
+        "values-en-rCA": "English (Canada)",
+        "values-en-rGB": "English (United Kingdom)",
+        "values-en-rIN": "English (India)",
+        "values-en-rSG": "English (Singapore)",
+        "values-jp": "Japanese",
+        "values-zh-rCN": "Chinese (simplified)",
+        "values-zh-rTW": "Chinese (traditional)"
+    }
+}
