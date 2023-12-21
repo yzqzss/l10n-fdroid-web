@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -140,6 +141,24 @@ func main() {
 		versionCode := result["versionCode"].(int64)
 
 		c.Redirect(302, fmt.Sprintf("/app/%s/versionCode/%d/%s", packageName, versionCode, any))
+	})
+
+	// params: urlOrPackageName
+	// Redirect to /app/:packageName/versionCode/latest/values
+	r.GET("/api/gotovalues", func(c *gin.Context) {
+		// https://f-droid.org/packages/me.zhanghai.android.untracker/
+		// https://f-droid.org/zh_Hans/packages/me.zhanghai.android.untracker/
+		// */packages/{packageName}
+		urlOrPackageName := c.Query("urlOrPackageName")
+		// Extract the package name from the URL
+		re := regexp.MustCompile(`.*/packages/(.+)`)
+		matches := re.FindStringSubmatch(urlOrPackageName)
+		if len(matches) == 0 {
+			// urlOrPackageName is packageName
+			matches = []string{urlOrPackageName, urlOrPackageName}
+		}
+
+		c.Redirect(302, fmt.Sprintf("/app/%s/versionCode/latest/values", matches[1]))
 	})
 
 	// {
