@@ -41,16 +41,39 @@
                 <li class="nav-item">
                     <!-- 单选或多选 -->
                     <div class="btn-group btn-group-toggle nav-link" data-toggle="buttons">
-                        <label class="btn btn-secondary active">
-                            <input type="radio" name="options" id="option1" autocomplete="off" checked> Single Select
+                        <!-- 单选 -->
+                        <label class="btn btn-secondary active"> <!-- 单选默认 active -->
+                            <input type="radio" name="options" id="option1" autocomplete="off" checked> Single Select [S]
                         </label>
+                        <!-- 多选 -->
                         <label class="btn btn-secondary">
-                            <input type="radio" name="options" id="option2" autocomplete="off"> Multi Select
+                            <input type="radio" name="options" id="option2" autocomplete="off"> Multi Select [M]
                         </label>
+
                         <!-- 全选 -->
-                        <button class="btn btn-secondary" onclick="$('.btn').addClass('active');clicked();">Select All</button>
+                        <button class="btn btn-secondary" onclick="$('.btn').addClass('active');clicked();">Select All [A]</button>
                         <!-- 取消全选 -->
-                        <button class="btn btn-secondary" onclick="$('.btn').removeClass('active');">Deselect All</button>
+                        <button class="btn btn-secondary" onclick="$('.btn').removeClass('active');">Deselect All [C]</button>
+
+                        <script>
+                            $(document).keydown(function(event) {
+                                // 单多选快捷键切换
+                                if (event.keyCode == 83) { // S
+                                    $("#option1").click();
+                                }
+                                if (event.keyCode == 77) { // M
+                                    $("#option2").click();
+                                }
+                                // 取消/全选快捷键
+                                if (event.keyCode == 65) { // A
+                                    $('.btn').addClass('active');
+                                    clicked();
+                                }
+                                if (event.keyCode == 67) { // C
+                                    $('.btn').removeClass('active');
+                                }
+                            });
+                        </script>
                     </div>
                     <script>
                         // Add event listener for the radio buttons
@@ -214,7 +237,14 @@
         }
     </style>
     <div class="float-right">
-        <a href="#" onclick="window.scrollTo(0,0);return false;" class="btn btn-secondary">Back to top</a>
+        <a href="#" onclick="window.scrollTo(0,0);return false;" class="btn btn-secondary">Back to top [T]</a>
+        <script>
+            $(document).keydown(function(event) {
+                if (event.keyCode == 84) { // T
+                    window.scrollTo(0,0);
+                }
+            });
+        </script>
     </div>
 </body>
 </html>
