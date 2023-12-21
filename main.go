@@ -65,7 +65,38 @@ func main() {
 		c.File("static/" + c.Param("filepath"))
 	})
 
-	r.GET("/api/stats", func(c *gin.Context) {
+	r.GET("/api/stats/values", func(c *gin.Context) {
+		pipeline := []bson.M{
+			{
+				"$group": bson.M{
+					"_id":            "$valuesName",
+					"count":          bson.M{"$sum": 1},
+					"stringCountSum": bson.M{"$sum": "$stringCount"},
+				},
+			},
+		}
+
+		cursor, err := values_collection.Aggregate(context.Background(), pipeline)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var results []bson.M
+		if err := cursor.All(context.Background(), &results); err != nil {
+			log.Fatal(err)
+		}
+
+		var resultMap = make(map[string]bson.M)
+		for _, result := range results {
+			result_id := result["_id"].(string)
+			delete(result, "_id")
+			resultMap[result_id] = result
+		}
+
+		c.JSON(200, resultMap)
+	})
+
+	r.GET("/api/stats/db", func(c *gin.Context) {
 		// datasize and storageSize
 		cmd := bson.D{{Key: "dbStats", Value: 1}}
 		result := bson.M{}
@@ -81,6 +112,10 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		// set cache
+		c.Header("Cache-Control", "public, max-age=86400")
+
 		c.JSON(200, gin.H{
 			"apps_docs":      apps_docs,
 			"values_docs":    values_docs,
