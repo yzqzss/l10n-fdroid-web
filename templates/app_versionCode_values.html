@@ -43,43 +43,51 @@
                     <div class="btn-group btn-group-toggle nav-link" data-toggle="buttons">
                         <!-- 单选 -->
                         <label class="btn btn-secondary active"> <!-- 单选默认 active -->
-                            <input type="radio" name="options" id="option1" autocomplete="off" checked> Single Select [S]
+                            <input type="radio" name="options" id="option1" checked> Single Select [S]
                         </label>
                         <!-- 多选 -->
                         <label class="btn btn-secondary">
-                            <input type="radio" name="options" id="option2" autocomplete="off"> Multi Select [M]
+                            <input type="radio" name="options" id="option2"> Multi Select [M]
                         </label>
 
                         <!-- 全选 -->
-                        <button class="btn btn-secondary" onclick="$('.btn').addClass('active');clicked();">Select All [A]</button>
+                        <button class="btn btn-secondary" onclick="Array.from(document.querySelectorAll('.btn')).forEach(btn => btn.classList.add('active'));clicked();">Select All [A]</button>
                         <!-- 取消全选 -->
-                        <button class="btn btn-secondary" onclick="$('.btn').removeClass('active');">Deselect All [C]</button>
+                        <button class="btn btn-secondary" onclick="Array.from(document.querySelectorAll('.btn')).forEach(btn => btn.classList.remove('active'));">Deselect All [C]</button>
 
                         <script>
-                            $(document).keydown(function(event) {
-                                // 单多选快捷键切换
+                            document.addEventListener('keydown', function(event) {
+                                // Toggle single/multiple selection shortcut
                                 if (event.keyCode == 83) { // S
-                                    $("#option1").click();
+                                    document.querySelector("#option1").click();
                                 }
                                 if (event.keyCode == 77) { // M
-                                    $("#option2").click();
+                                    document.querySelector("#option2").click();
                                 }
-                                // 取消/全选快捷键
+                                // Cancel/Select All shortcut
                                 if (event.keyCode == 65) { // A
-                                    $('.btn').addClass('active');
+                                    Array.from(document.querySelectorAll('.btn')).forEach(btn => btn.classList.add('active'));
                                     clicked();
                                 }
                                 if (event.keyCode == 67) { // C
-                                    $('.btn').removeClass('active');
+                                    Array.from(document.querySelectorAll('.btn')).forEach(btn => btn.classList.remove('active'));
                                 }
                             });
                         </script>
                     </div>
                     <script>
+                        // Get all radio buttons with name 'options'
+                        const radioButtons = document.querySelectorAll('input[type=radio][name=options]');
+                    
                         // Add event listener for the radio buttons
-                        $('input[type=radio][name=options]').change(function() {
-                            // When the radio button selection changes, deactive all buttons
-                            $('.btn').removeClass('active');
+                        radioButtons.forEach(radioButton => {
+                            radioButton.addEventListener('change', function() {
+                                // When the radio button selection changes, deactivate all buttons
+                                const buttons = document.querySelectorAll('.btn');
+                                buttons.forEach(button => {
+                                    button.classList.remove('active');
+                                });
+                            });
                         });
                     </script>
                 </li>
@@ -134,10 +142,9 @@
 
     <script>
         function clicked() {
-            // 查看是否有被激活的按钮
             setTimeout(function() {
-                // 查看是否有被激活的按钮
-                var activeBtn = $(".btn-primary.active");
+                // Check if there are any active buttons
+                var activeBtn = document.querySelectorAll(".btn-primary.active");
                 if (activeBtn.length == 0) {
                     console.log("No button is active");
                     return;
@@ -147,90 +154,88 @@
         }
     </script>
     <script>
-        function showSelectValues() {
-            // 获取选中的 values
-            var selectedValues = [];
-            $(".btn-primary.active").each(function() {
-                selectedValues.push($(this).attr("valuesName"));
-            });
-            // 如果是单选模式，deactivate 全部按钮
-            if ($("#option1").prop("checked")) {
-                console.log("Single Select, deactivate all buttons");
-                $(".btn-primary.active").each(function() {
-                    $(this).removeClass("active");
-                });
-            } else {
-                console.log("Multi Select");
-            }
-            console.log("Selected values: " + selectedValues);
+    function showSelectValues() {
+        // 获取选中的 values
+        var selectedValues = Array.from(document.querySelectorAll(".btn-primary.active")).map(btn => btn.getAttribute("valuesName"));
 
-            // 清空表格
-            $("#valuesTable").empty();
-
-            // 添加表头
-            var thead = $("<thead>");
-            // 紧凑模式
-            var headerRow = $("<tr class='table-active table-header'>");
-            headerRow.append($("<th>").text("String Name")); // key
-            for (var i = 0; i < selectedValues.length; i++) {
-                headerRow.append($("<th>").text(selectedValues[i]));
-            }
-            thead.append(headerRow);
-            $("#valuesTable").append(thead);
-
-            // 添加表格内容
-            var tbody = $("<tbody>");
-            var rows = {};
-            var responses = {};
-            var promises = [];
-            for (let i = 0; i < selectedValues.length; i++) { // 草，并发bug。得用 let 使得 i 在 callback 时不变
-                var promise = $.ajax({
-                    url: "/api/app_values",
-                    type: "GET",
-                    data: {
-                        // get from <data> attr
-                        packageName: $("data").attr("packageName"),
-                        versionCode: $("data").attr("versionCode"),
-                        valuesName: selectedValues[i]
-                    },
-                    success: function(response) {
-                        responses[i] = response;
-                    }
-                });
-                promises.push(promise);
-            }
-            Promise.all(promises).then(function() {
-                console.log("All promises are resolved");
-                for (var i = 0; i < selectedValues.length; i++) {
-                    var response = responses[i];
-                    for (var key in response.data.strings) {
-                        // 如果这个 key 在 rows 中不存在，就添加一行
-                        if (!rows.hasOwnProperty(key)) {
-                            console.log("Add row: " + key);
-                            rows[key] = $("<tr>").append($("<td>").text(key));
-                        }
-                    }
-                    // 遍历 rows 中的每一行，如果这一行中没有这个 valuesName 对应的单元格，就添加一个
-                    for (var key in rows) {
-                        if (!(key in response.data.strings)) {
-                            console.log("Add empty cell: " + key);
-                            rows[key].append($("<td>").text(""));
-                        } else {
-                            console.log("Add cell: " + key);
-                            rows[key].append($("<td>").text(response.data.strings[key]));
-                        }
-                    }
-                }
-                for (var key in rows) {
-                    console.log("Add row to tbody: " + key);
-                    tbody.append(rows[key]);
-                }
-                // 将 rows 中的所有行添加到 tbody 中
-
-                console.log("Add tbody to table");
-                $("#valuesTable").append(tbody);
-            });
+        // 如果是单选模式，deactivate 全部按钮
+        if (document.querySelector("#option1").checked) {
+            console.log("Single Select, deactivate all buttons");
+            document.querySelectorAll(".btn-primary.active").forEach(btn => btn.classList.remove("active"));
+        } else {
+            console.log("Multi Select");
         }
+        console.log("Selected values: " + selectedValues);
+
+        // 清空表格
+        var valuesTable = document.querySelector("#valuesTable");
+        valuesTable.innerHTML = '';
+
+        // 添加表头
+        var thead = document.createElement("thead");
+        var headerRow = document.createElement("tr");
+        headerRow.className = 'table-active table-header';
+        headerRow.innerHTML = '<th>String Name</th>' + selectedValues.map(value => `<th>${value}</th>`).join('');
+        thead.appendChild(headerRow);
+        valuesTable.appendChild(thead);
+
+        // 添加表格内容
+        var tbody = document.createElement("tbody");
+        var rows = {};
+        var responses = {};
+        var promises = [];
+
+        for (let i = 0; i < selectedValues.length; i++) {
+            var packageName = document.querySelector("data").getAttribute("packageName");
+            var versionCode = document.querySelector("data").getAttribute("versionCode");
+            var valuesName = selectedValues[i];
+            var url = `/api/app_values?packageName=${encodeURIComponent(packageName)}&versionCode=${encodeURIComponent(versionCode)}&valuesName=${encodeURIComponent(valuesName)}`;
+
+            var promise = fetch(url, {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(response => {
+                responses[i] = response;
+            });
+            promises.push(promise);
+        }
+
+        Promise.all(promises).then(function() {
+            console.log("All promises are resolved");
+            for (var i = 0; i < selectedValues.length; i++) {
+                var response = responses[i];
+                for (var key in response.data.strings) {
+                    // 如果这个 key 在 rows 中不存在，就添加一行
+                    if (!rows.hasOwnProperty(key)) {
+                        console.log("Add row: " + key);
+                        var row = document.createElement("tr");
+                        row.innerHTML = `<td>${key}</td>`;
+                        rows[key] = row;
+                    }
+                }
+                // 遍历 rows 中的每一行，如果这一行中没有这个 valuesName 对应的单元格，就添加一个
+                for (var key in rows) {
+                    if (!(key in response.data.strings)) {
+                        console.log("Add empty cell: " + key);
+                        rows[key].innerHTML += "<td></td>";
+                    } else {
+                        console.log("Add cell: " + key);
+                        rows[key].innerHTML += `<td>${escapeHTML(response.data.strings[key])}</td>`;
+                    }
+                }
+            }
+            for (var key in rows) {
+                console.log("Add row to tbody: " + key);
+                tbody.appendChild(rows[key]);
+            }
+            console.log("Add tbody to table");
+            valuesTable.appendChild(tbody);
+        });
+    }
     </script>
     <!-- 加一个一键回顶的右下角悬浮按钮 -->
     <style>
@@ -243,12 +248,19 @@
     <div class="float-right">
         <a href="#" onclick="window.scrollTo(0,0);return false;" class="btn btn-secondary">Back to top [T]</a>
         <script>
-            $(document).keydown(function(event) {
+            document.addEventListener('keydown', function(event) {
                 if (event.keyCode == 84) { // T
                     window.scrollTo(0,0);
                 }
             });
         </script>
     </div>
+    <script>
+        function escapeHTML(str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+    </script>
 </body>
 </html>
