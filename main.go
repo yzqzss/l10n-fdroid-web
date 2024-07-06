@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"html/template"
 	"log"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -45,14 +48,18 @@ func connect_to_mongodb() error {
 	return err
 }
 
+//go:embed templates/*
+var embeddedHtmlFiles embed.FS
+
+//go:embed static/*
+var embeddedStaticFiles embed.FS
+
 func main() {
 	fmt.Println("Starting server...")
 	r := gin.Default()
-	r.LoadHTMLGlob("templates/*")
+	html_templ := template.Must(template.New("").ParseFS(embeddedHtmlFiles, "templates/*"))
+	r.SetHTMLTemplate(html_templ)
 
-	r.GET("/robots.txt", func(ctx *gin.Context) {
-		ctx.String(200, "User-agent: *\nWelcome!\n")
-	})
 	r.GET("/favicon.ico", func(ctx *gin.Context) {
 		// 301 ->
 		// "static/fdroid-icon.png"
@@ -63,7 +70,8 @@ func main() {
 	})
 
 	r.GET("/static/*filepath", func(c *gin.Context) {
-		c.File("static/" + c.Param("filepath"))
+		// c.File("static/" + c.Param("filepath"))
+		c.FileFromFS("static/"+c.Param("filepath"), http.FS(embeddedStaticFiles))
 	})
 
 	r.GET("/api/stats/values", func(c *gin.Context) {
