@@ -311,10 +311,10 @@ func main() {
 			c.Header("App-PackageName", packageName)
 			c.Header("App-VersionCode", fmt.Sprintf("%d", versionCode))
 			c.JSON(200, gin.H{
-				"packageName":    packageName,
-				"versionCode":    versionCode,
-				"appResult":      appResult,
-				"values":         valuesResults,
+				"packageName": packageName,
+				"versionCode": versionCode,
+				"appResult":   appResult,
+				// "values":         valuesResults,
 				"len_values":     len(valuesResults),
 				"maxStringCount": maxStringCount,
 			})
