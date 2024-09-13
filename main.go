@@ -307,6 +307,20 @@ func main() {
 			valuesResults[i]["percentage"] = float32(result["stringCount"].(int32)) / float32(maxStringCount) * 100
 		}
 
+		if c.Query("format") == "json" {
+			c.Header("App-PackageName", packageName)
+			c.Header("App-VersionCode", fmt.Sprintf("%d", versionCode))
+			c.JSON(200, gin.H{
+				"packageName":    packageName,
+				"versionCode":    versionCode,
+				"sourceCode":     appResult,
+				"values":         valuesResults,
+				"len_values":     len(valuesResults),
+				"maxStringCount": maxStringCount,
+			})
+			return
+		}
+
 		c.HTML(200, "app_versionCode_values.html", gin.H{
 			"packageName":    packageName,
 			"versionCode":    versionCode,
