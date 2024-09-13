@@ -313,7 +313,7 @@ func main() {
 			c.JSON(200, gin.H{
 				"packageName":    packageName,
 				"versionCode":    versionCode,
-				"sourceCode":     appResult,
+				"appResult":      appResult,
 				"values":         valuesResults,
 				"len_values":     len(valuesResults),
 				"maxStringCount": maxStringCount,
