@@ -214,6 +214,12 @@ func main() {
 			c.HTML(404, "404.html", nil)
 			return
 		}
+		if c.Param("format") == "json" {
+			c.Header("App-PackageName", packageName)
+			c.Header("App-VersionCode", fmt.Sprintf("%d", versionCode))
+			c.JSON(200, result)
+			return
+		}
 		c.HTML(200, "app_versionCode.html", gin.H{
 			"packageName": packageName,
 			"versionCode": versionCode,
